@@ -61,12 +61,40 @@ registerRoute(
   })
 );
 
-// This allows the web app to trigger skipWaiting via
-// registration.waiting.postMessage({type: 'SKIP_WAITING'})
+var threshold   = 500,
+    successFunc = function(){ console.log('It exists!'); };
+
+var myXHR = $.ajax({
+  url: $('#checkme').attr('href'),
+  type: 'text',
+  method: 'get',
+  error: function() {
+    console.log('file does not exist');
+  },
+  success: successFunc
+});
+
+setTimeout(function(){
+  myXHR.abort();
+  successFunc()
+  function urlExists(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        callback(xhr.status < 400);
+      }
+    };
+    xhr.open('HEAD', url);
+    xhr.send();
+  }
+  
+  urlExists(someUrl, function(exists) {
+      console.log('"%s" exists?', someUrl, exists);
+  });
+
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-// Any other custom service worker logic can go here.
